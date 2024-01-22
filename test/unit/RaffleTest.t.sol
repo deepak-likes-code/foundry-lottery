@@ -17,6 +17,7 @@ contract RaffleTest is Test {
     address public PLAYER = makeAddr("Player");
     uint256 public constant ENTRANCE_FEE = 0.25 ether;
     uint256 public constant STARTING_USER_BALANCE = 10 ether;
+    uint256 public constant interval = 30;
 
 
     function setUp() external {
@@ -63,6 +64,20 @@ contract RaffleTest is Test {
     raffle.enterRaffle{value:ENTRANCE_FEE}();
 
 
+ }
+
+ function testRaffleRevertWhenCalculating() public {
+    vm.prank(PLAYER);
+    raffle.enterRaffle{value:ENTRANCE_FEE}();
+    vm.warp(block.timestamp + interval + 1);
+    vm.roll(block.number + 1);
+    raffle.performUpkeep("0x00");
+
+    // the state will go into calculating after the upkeep
+
+    vm.expectRevert(Raffle.Raffle__RaffleNotOpen.selector);
+    vm.prank(PLAYER);
+    raffle.enterRaffle{value:ENTRANCE_FEE}();
  }
 
 }
